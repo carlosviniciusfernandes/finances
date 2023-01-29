@@ -1,0 +1,22 @@
+Entrada/Saída,Data,Movimentação,Produto,Instituição,Quantidade,Preço unitário,Valor da Operação
+Credito,27/12/2022,Transferência - Liquidação,NUBR33 - NU HOLDINGS LTD.,NU INVEST CORRETORA DE VALORES S.A.,39," R$3,28 "," R$127,92 "
+Credito,27/12/2022,Transferência - Liquidação,TSLA34 - TESLA INC   ,NU INVEST CORRETORA DE VALORES S.A.,9," R$20,00 "," R$180,00 "
+Credito,09/12/2022,Transferência,NUBR33 - NU HOLDINGS LTD.,NU INVEST CORRETORA DE VALORES S.A.,1, - , - 
+Credito,13/10/2022,Transferência - Liquidação,IVVB11 - ISHARE S&P 500 FIC EM FUNDO DE INDICE IE,NU INVEST CORRETORA DE VALORES S.A.,2," R$205,69 "," R$411,38 "
+Credito,13/10/2022,Transferência - Liquidação,NUBR33 - NU HOLDINGS LTD.,NU INVEST CORRETORA DE VALORES S.A.,2," R$3,63 "," R$7,26 "
+Debito,19/09/2022,Transferência - Liquidação,"NFLX34 - NETFLIX, INC.",NU INVEST CORRETORA DE VALORES S.A.,7," R$25,00 "," R$175,00 "
+Debito,06/09/2022,Transferência - Liquidação,WEGE3 - WEG S.A.,NU INVEST CORRETORA DE VALORES S.A.,6," R$30,00 "," R$180,00 "
+Credito,26/08/2022,Desdobro,TSLA34 - TESLA INC   ,NU INVEST CORRETORA DE VALORES S.A.,14, - , - 
+Credito,17/08/2022,Juros Sobre Capital Próprio,WEGE3 - WEG S.A.,NU INVEST CORRETORA DE VALORES S.A.,6," R$0,04 "," R$0,19 "
+Credito,17/08/2022,Juros Sobre Capital Próprio,WEGE3 - WEG S.A.,NU INVEST CORRETORA DE VALORES S.A.,6," R$0,04 "," R$0,22 "
+Credito,17/08/2022,Dividendo,WEGE3 - WEG S.A.,NU INVEST CORRETORA DE VALORES S.A.,6," R$0,13 "," R$0,79 "
+Debito,08/08/2022,Transferência - Liquidação,MGLU3 - MAGAZINE LUIZA S/A,NU INVEST CORRETORA DE VALORES S.A.,16," R$3,00 "," R$48,00 "
+Credito,14/06/2022,Atualização,MGLU3 - MAGAZINE LUIZA S/A,NU INVEST CORRETORA DE VALORES S.A.,16, - , - 
+Credito,06/05/2022,Juros Sobre Capital Próprio,MGLU3 - MAGAZINE LUIZA S/A,NU INVEST CORRETORA DE VALORES S.A.,16," R$0,02 "," R$0,21 "
+Credito,04/05/2022,Juros Sobre Capital Próprio,LREN3 - LOJAS RENNER S/A,NU INVEST CORRETORA DE VALORES S.A.,4," R$0,07 "," R$0,25 "
+Credito,04/05/2022,Juros Sobre Capital Próprio,LREN3 - LOJAS RENNER S/A,NU INVEST CORRETORA DE VALORES S.A.,4," R$0,10 "," R$0,34 "
+Credito,16/03/2022,Dividendo,WEGE3 - WEG S.A.,NU INVEST CORRETORA DE VALORES S.A.,6," R$0,21 "," R$1,23 "
+Credito,16/03/2022,Juros Sobre Capital Próprio,WEGE3 - WEG S.A.,NU INVEST CORRETORA DE VALORES S.A.,6," R$0,03 "," R$0,17 "
+Credito,16/03/2022,Juros Sobre Capital Próprio,WEGE3 - WEG S.A.,NU INVEST CORRETORA DE VALORES S.A.,6," R$0,02 "," R$0,11 "
+Debito,15/03/2022,Rendimento - Cancelado,IRBR3 - IRB BRASIL RESSEGUROS S/A,NU INVEST CORRETORA DE VALORES S.A.,3, - , - 
+Debito,15/03/2022,Dividendo - Cancelado,IRBR3 - IRB BRASIL RESSEGUROS S/A,NU INVEST CORRETORA DE VALORES S.A.,3," R$0,10 "," R$0,29 "
