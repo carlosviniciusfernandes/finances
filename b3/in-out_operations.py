@@ -1,15 +1,17 @@
 import pathlib
 import pandas as pd
+
 from pprint import pprint
+
+inout_operations = ['Compra', 'Venda', 'Transferência - Liquidação']
 
 products = {} # TODO make this a DataFrame with data info of the last operation
 money_in = 0
 money_out = 0
-inout_operations = ['Compra', 'Venda', 'Transferência - Liquidação']
 
 def parse_monetary_amount(string: str) -> float:
     try:
-        parsed_string = string.split('R$')[1].replace(',', '.')
+        parsed_string = string.split('R$')[1].replace('.','').replace(',', '.')
         return float(parsed_string)
     except:
         return 0
@@ -21,14 +23,15 @@ for item in files_in_basepath:
     rows, _ = df.shape
 
     for i in range(0, rows):
-        amount = parse_monetary_amount(df['Valor da Operação'][i])
-        type = df['Movimentação'][i]
         product = df['Produto'][i]
-        if type in inout_operations:
+        direction = df['Entrada/Saída'][i]
+        amount = parse_monetary_amount(df['Valor da Operação'][i])
+        operation = df['Movimentação'][i]
+        if operation in inout_operations:
             if products.get(product) is None:
                 products[product] = 0
 
-            if df['Entrada/Saída'][i] == 'Credito':
+            if  direction == 'Credito':
                 money_in += float(amount)
                 products[product] -= float(amount)
             else: # df['Entrada/Saída'][i] == 'Débito'
