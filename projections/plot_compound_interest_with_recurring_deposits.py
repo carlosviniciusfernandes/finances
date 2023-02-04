@@ -3,6 +3,7 @@ import matplotlib.pyplot as plt
 
 from argparse import _ArgumentGroup
 from functions import compound_interest as f
+from plot_utils.cursor import Cursor
 
 default_time_frame = 15 # years
 default_initial_deposit = 100000
@@ -35,11 +36,16 @@ def run(*args, **kwargs):
     years = kwargs.get('years', default_time_frame)
     initial_deposit = kwargs.get('initial', default_initial_deposit)
     recurring_deposit = kwargs.get('deposits', default_recurring_deposit)
-    resolution = 4
 
+    resolution = 4
     time_frame = np.linspace(0, years, (years*resolution)+1)
+
+    fig, ax = plt.subplots()
     for i in APY:
-        plt.plot(time_frame, f(time_frame, i, initial_deposit, recurring_deposit), label=f'{i*100:.1f}% APY')
+        ax.plot(time_frame, f(time_frame, i, initial_deposit, recurring_deposit), label=f'{i*100:.1f}% APY')
+    cursor = Cursor(ax)
+    fig.canvas.mpl_connect('motion_notify_event', cursor.on_mouse_move)
+
     plt.grid(linestyle='-', linewidth=1)
     plt.xlabel("Years")
     plt.ylabel("Accumulated Amount")

@@ -21,8 +21,9 @@ import matplotlib.pyplot as plt
 
 from argparse import _ArgumentGroup
 from dataclasses import dataclass
+
 from functions import compound_interest as f, accumulate_index as acc
-from plot_utils.cursor import SnappingCursor
+from plot_utils.snapping_cursor import SnappingCursor
 from plot_utils.plot_data import PlotData
 
 @dataclass
