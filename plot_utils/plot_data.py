@@ -10,4 +10,3 @@ class PlotData:
     def get_index_data(self, idx) -> str:
         return f'x: {self.x[idx]:.2e}, y: {self.y[idx]:.2e}' + \
                f'\n{self.additional_data[idx].__repr__()}' if self.additional_data else ''
-

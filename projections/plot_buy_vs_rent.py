@@ -19,6 +19,7 @@ geométrica  0.088714  0.068358
 import numpy as np
 import matplotlib.pyplot as plt
 
+from argparse import _ArgumentGroup
 from dataclasses import dataclass
 from functions import compound_interest as f, correct_by_index
 from plot_utils.cursor import SnappingCursor
@@ -41,82 +42,197 @@ class Stats:
             f'\ninterest: {self.interest:.0f}' + \
             f'\nhouse: {self.house_value:.0f}'
 
-budget = 20000
-spences = 6000
-house_value = 220000
-# rent = house_value*0.009
-rent = 1600
 
-inflation = 0.06
-hpi = 0.08
+default_time_frame = 15 # years
+default_budget = 15000
+default_spences = 5000
+default_house_value = 200000
+default_rent = default_house_value*0.005 # 5% of house value
+default_inflation = 6 # percentage
+default_hpi = 8 # percentage
+default_apy = 10 # percentage
 
-mothly_interest_rates = [0.002, 0.004, 0.006, 0.008, 0.01, 0.012, 0.014, 0.016]
-APY = [ pow(1+i, 12) - 1 for i in mothly_interest_rates]
-r = 3
 
-time_frame = 15 # years
-years = np.linspace(0, time_frame, (time_frame*4)+1)
+def add_command(subparsers: _ArgumentGroup):
+    parser = subparsers.add_parser('buy_vs_rent')
+    interest_rate = parser.add_mutually_exclusive_group()
+    interest_rate.add_argument('-iy', '--APY',
+        type=float,
+        help=f'annual percentage yield. Default is {default_apy}%%',
+        metavar='',
+        default=default_apy
+    )
+    interest_rate.add_argument('-im', '--MPY',
+        type=float,
+        help=f'optinal monthly interest rate. If set, it computes the actual APY',
+        metavar='',
+        default=0
+    )
+    parser.add_argument('-y', '--years',
+        type=int,
+        help=f'years to simulate. Default is {default_time_frame}',
+        metavar='',
+        default=default_time_frame
+    )
+    parser.add_argument('-b', '--budget',
+        type=float,
+        help=f'monthly budget. Default is {default_budget}',
+        metavar='',
+        default=default_budget
+    )
+    parser.add_argument('-r', '--rent',
+        type=float,
+        help=f'rent value. Default is 0.5%% of house value {default_rent}',
+        metavar='',
+        default=default_rent
+    )
+    parser.add_argument('-s', '--spences',
+        type=float,
+        help=f'avg monthly spences (rent not included). Default {default_spences}',
+        metavar='',
+        default=default_spences
+    )
+    parser.add_argument('-hv', '--house',
+        type=float,
+        help=f'house value. Default is {default_house_value}',
+        metavar='',
+        default=default_house_value
+    )
+    parser.add_argument('-if', '--inflation',
+        type=float,
+        help=f'inflation index (Brazil\'s IPCA). Default is {default_inflation}',
+        metavar='',
+        default=default_inflation
+    )
+    parser.add_argument('-hi', '--hpi',
+        type=float,
+        help=f'house price index (Brazil\'s IGPM). Default is {default_hpi}',
+        metavar='',
+        default=default_hpi
+    )
 
-#TODO better naming this hash
-df = {
-    'budget': budget*correct_by_index(years, inflation, 'strict'),
-    'spences': spences*correct_by_index(years, inflation),
-    'rent': rent*correct_by_index(years, hpi, 'strict'),
-    'house_value': house_value*correct_by_index(years, hpi, 'strict')
-}
 
-investment_budget = df['budget']-df['spences']-df['rent']
-data0 = PlotData(
-    x = years,
-    y = f(years, APY[r], house_value, investment_budget),
-    additional_data = [
-        Stats(
-            budget=df['budget'][i],
-            spences=df['spences'][i],
-            rent=df['rent'][i],
-            interest=f(year, APY[r], house_value, investment_budget[i])*mothly_interest_rates[r],
-            house_value=0
-        )
-    for i, year in enumerate(years)]
-)
+def compute_indexes(kwargs: dict) -> dict:
+    mpy = kwargs.get('MPY') / 100
+    apy = kwargs.get('APY') / 100
+    inflation = kwargs.get('inflation') / 100
+    hpi = kwargs.get('hpi') / 100
 
-investment_budget=df['budget']-df['spences']
-data1 = PlotData(
-    x = years,
-    y = f(years, APY[r], 0, investment_budget),
-    additional_data = [
-        Stats(
-            budget=df['budget'][i],
-            spences=df['spences'][i],
-            house_value=df['house_value'][i],
-            interest=f(year, APY[r], 0, investment_budget[i])*mothly_interest_rates[r],
-            rent=0
-        ) for i, year in enumerate(years)
-    ]
-)
+    actual_apy = pow(1 + mpy, 12) - 1 if mpy else apy
+    return {
+        'apy': actual_apy,
+        'inflation': inflation,
+        'hpi': hpi
+    }
 
-data2 = PlotData(
-    x = years,
-    y = data1.y + df['house_value'],
-)
 
-def run():
-    fig, ax = plt.subplots(figsize=(16,9))
+def compute_values_corrected_by_index_over_time(
+    values: dict,
+    indexes: dict,
+    time_frame: np.array
+) -> dict:
+    budget = values.get('budget')
+    spences = values.get('spences')
+    rent = values.get('rent')
+    house_value = values.get('house')
+    inflation = indexes.get('inflation')
+    hpi = indexes.get('hpi')
+    return {
+        'budget': budget*correct_by_index(time_frame, inflation, 'strict'),
+        'spences': spences*correct_by_index(time_frame, inflation),
+        'rent': rent*correct_by_index(time_frame, hpi, 'strict'),
+        'house_value': house_value*correct_by_index(time_frame, hpi, 'strict')
+    }
 
+
+def get_time_frame(kwargs: dict) -> np.array:
+    resolution = 4
+    years = kwargs.get('years', default_time_frame)
+    return np.linspace(0, years, (years*resolution)+1)
+
+
+def get_plot_data_for_buy(
+    apy: float,
+    time_frame: np.array,
+    values: dict,
+    add_house_value: bool = False
+) -> PlotData:
+    investment_budget = values['budget']-values['spences']
+    accumulated_value = f(time_frame, apy, 0, investment_budget)
+    return PlotData(
+        x = time_frame,
+        y = accumulated_value + (0 if not add_house_value else values['house_value']),
+        additional_data = [
+            Stats(
+                budget=values['budget'][i],
+                spences=values['spences'][i],
+                rent=0,
+                interest=accumulated_value[i]*(pow(1+apy, 1/12)-1),
+                house_value=values['house_value'][i]
+            )
+        for i, _ in enumerate(time_frame)]
+    )
+
+
+def get_plot_data_for_rent(
+    apy: float,
+    time_frame: np.array,
+    values: dict
+) -> PlotData:
+    initial_deposit = values['house_value'][0]
+    investment_budget = values['budget']-values['spences']-values['rent']
+    accumulated_value = f(time_frame, apy, initial_deposit, investment_budget)
+    return PlotData(
+        x = time_frame,
+        y = accumulated_value,
+        additional_data = [
+            Stats(
+                budget=values['budget'][i],
+                spences=values['spences'][i],
+                rent=values['rent'][i],
+                interest=accumulated_value[i]*(pow(1+apy, 1/12)-1),
+                house_value=0
+            )
+        for i, _ in enumerate(time_frame)]
+    )
+
+
+def get_plot_title(indexes, values):
+    apy = indexes['apy']
+    inflation = indexes['hpi']
+    hpi = indexes['hpi']
+    budget = values['budget'][0]
+    house_value = values['house_value'][0]
+    rent = values['rent'][0]
+    spences = values['spences'][0]
+    return f'APY {apy*100:.1f}% | IPCA {inflation*100:.2f}% | IGPM {hpi*100:.2f}% \n Budget R\\$ {budget:.0f} | Imóvel R\\$ {house_value:.0f} | Aluguel R\\$ {rent:.0f} | Despesas R\\$ {spences:.0f}'
+
+
+def run(*args,**kwargs):
+    time_frame = get_time_frame(kwargs)
+    indexes = compute_indexes(kwargs)
+    df = compute_values_corrected_by_index_over_time(kwargs, indexes, time_frame)
+
+    scale = 1.1
+    fig, ax = plt.subplots(figsize=(16*scale,9*scale))
+
+    data0 = get_plot_data_for_rent(indexes['apy'], time_frame, df)
     ax.plot(data0.x, data0.y, color='b', label=f'total investido - aluguel')
     cursor0 = SnappingCursor(ax, data0, {'color': 'b'})
     fig.canvas.mpl_connect('motion_notify_event', cursor0.on_mouse_move)
 
+    data1 = get_plot_data_for_buy(indexes['apy'], time_frame, df)
     ax.plot(data1.x, data1.y, color='r', label=f'total investido - casa própria')
     cursor1 = SnappingCursor(ax, data1, {'color': 'r', 'x': 0.95})
     fig.canvas.mpl_connect('motion_notify_event', cursor1.on_mouse_move)
 
+    data2 = get_plot_data_for_buy(indexes['apy'], time_frame, df, True)
     ax.plot(data2.x, data2.y, color='g', label=f'patrimônio total com imóvel')
 
     ax.grid(linestyle='-', linewidth=1)
     ax.set_xlabel("Anos")
     ax.set_ylabel("Patrimônio")
-    plt.axis(xmin=0, xmax=time_frame, ymin=0)
-    plt.title(f'APY {APY[r]*100:.1f}% | IPCA {inflation*100:.2f}% | IGPM {hpi*100:.2f}% \n Budget R\\$ {budget} | Imóvel R\\$ {house_value} | Aluguel R\\$ {rent} | Despesas R\\$ {spences}')
+    plt.axis(xmin=0, xmax=time_frame[-1], ymin=0)
+    plt.title(get_plot_title(indexes, df))
     plt.legend()
     plt.show()
