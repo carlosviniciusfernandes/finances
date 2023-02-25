@@ -4,7 +4,8 @@ def compound_interest(
     years: float,
     APY: float,
     initial_deposit: float,
-    recuring_deposit: float = 0, n=12
+    recuring_deposit: float = 0,
+    n: int = 12
 ) -> float:
     """
     Args:

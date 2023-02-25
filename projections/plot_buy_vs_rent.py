@@ -48,7 +48,7 @@ default_time_frame = 15 # years
 default_budget = 15000
 default_spences = 5000
 default_house_value = 200000
-default_rent = default_house_value*0.005 # 5% of house value
+default_rental_yield = 0.005 # 5% of house value
 default_inflation = 6 # percentage
 default_hpi = 8 # percentage
 default_apy = 10 # percentage
@@ -83,9 +83,9 @@ def add_command(subparsers: _ArgumentGroup):
     )
     parser.add_argument('-r', '--rent',
         type=float,
-        help=f'rent value. Default is 0.5%% of house value {default_rent}',
+        help=f'rent value. Default is {default_rental_yield*100}%% of house value',
         metavar='',
-        default=default_rent
+        required=False
     )
     parser.add_argument('-s', '--spences',
         type=float,
@@ -134,8 +134,8 @@ def compute_values_corrected_by_index_over_time(
 ) -> dict:
     budget = initial_values.get('budget')
     spences = initial_values.get('spences')
-    rent = initial_values.get('rent')
     house_value = initial_values.get('house')
+    rent = initial_values.get('rent') or house_value*default_rental_yield
     inflation = indexes.get('inflation')
     hpi = indexes.get('hpi')
     return {
@@ -198,15 +198,27 @@ def get_plot_data_for_rent(
     )
 
 
-def get_plot_title(indexes, values):
+def get_plot_title(indexes, values)->str:
     apy = indexes['apy']
-    inflation = indexes['hpi']
+    inflation = indexes['inflation']
     hpi = indexes['hpi']
     budget = values['budget'][0]
     house_value = values['house_value'][0]
     rent = values['rent'][0]
     spences = values['spences'][0]
     return f'APY {apy*100:.1f}% | IPCA {inflation*100:.2f}% | IGPM {hpi*100:.2f}% \n Budget R\\$ {budget:.0f} | Imóvel R\\$ {house_value:.0f} | Aluguel R\\$ {rent:.0f} | Despesas R\\$ {spences:.0f}'
+
+
+def get_magic_moment(data: PlotData)->tuple:
+    """ The `magic moment` is when financial independence is achieved,
+        defined by the monthly interest been greater than spences.
+    """
+    stats_over_time: list[Stats] = data.additional_data
+    for i, stats in enumerate(stats_over_time):
+        if(stats.interest < stats.spences + stats.rent):
+            continue
+        else:
+            return data.x[i], data.y[i]
 
 
 def run(*args,**kwargs):
@@ -219,11 +231,13 @@ def run(*args,**kwargs):
 
     data0 = get_plot_data_for_rent(indexes['apy'], time_frame, values)
     ax.plot(data0.x, data0.y, color='b', label=f'total investido - aluguel')
+    ax.plot(*(get_magic_moment(data0)), 'y*')
     cursor0 = SnappingCursor(ax, data0, {'color': 'b'})
     fig.canvas.mpl_connect('motion_notify_event', cursor0.on_mouse_move)
 
     data1 = get_plot_data_for_buy(indexes['apy'], time_frame, values)
     ax.plot(data1.x, data1.y, color='r', label=f'total investido - casa própria')
+    ax.plot(*(get_magic_moment(data1)), 'y*')
     cursor1 = SnappingCursor(ax, data1, {'color': 'r', 'x': 0.95})
     fig.canvas.mpl_connect('motion_notify_event', cursor1.on_mouse_move)
 
